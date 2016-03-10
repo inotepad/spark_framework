@@ -5,7 +5,7 @@
 
 *  https://www.zhihu.com/question/23079001/answer/23569986
 
-如果我们假设map的意义是一次遍历，并且立即执行。直觉上应该是map(f1).map(f2) ，最终执行的时候是map(f2(f1)) 
+如果我们假设map的意义是一次遍历，并且立即执行。写的spark的代码应该是map(f1).map(f2) ，最终执行的时候是map(f2(f1)) 
 
 
 下面我们以first为例，讲解如何pipeline多个Transformation，也就是前面答案中的
@@ -169,6 +169,28 @@ Iterator本身是lazy的，就是说它并不运算，仅仅是返回一个Itera
 iterator.map(x=>f2(f1(x))).take(1).toArray
 ```
 
+使用scala代码作为例子就是
+
+```
+$ scala
+Welcome to Scala version 2.10.4 (OpenJDK 64-Bit Server VM, Java 1.7.0_65).
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> Iterator(1,2,3).map(_+1)
+res0: Iterator[Int] = non-empty iterator
+
+scala> Iterator(1,2,3).map(_+1).map(_+2)
+res1: Iterator[Int] = non-empty iterator
+
+scala> Iterator(1,2,3).map(_+1).map(_+2).take(1)
+res2: Iterator[Int] = non-empty iterator
+
+scala> Iterator(1,2,3).map(_+1).map(_+2).take(1).toArray
+res3: Array[Int] = Array(4)
+
+```
+
 ### 总结
 
 * 输入代码
@@ -187,9 +209,11 @@ val element = rdd2.iterator.map(f2).take(1).toArray
 val element = rdd2.compute.map(f2).take(1).toArray
 val element = rdd1.iterator().map(f1).map(f2).take(1).toArray
 val element = rdd1.compute().map(f1).map(f2).take(1).toArray
+val element = iterator().map(f1).map(f2).take(1).toArray
 ```
 
 * scala的惰性Iterator
+
 ```
-iterator.map(x=>f2(f1(x))).take(1).toArray
+val element = iterator.map(x=>f2(f1(x))).take(1).toArray
 ```

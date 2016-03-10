@@ -7,12 +7,15 @@
 ### （1）driver端主线程
 ```
 sc.runJob -> dagScheduler.runJob -> waiter （JobWaiter这是一个listener）
-runJob  -> SubmitJob 向 eventProcessLoop 发送  JobSubmitted 消息
+runJob  -> SubmitJob
+
+SubmitJob 向 eventProcessLoop 发送  JobSubmitted 消息
+
 ```
 ### （2）driver端 生成Task，并且提交给executor
 
-- dagScheduler负责两个线程的通信
 - eventProcessLoop异步处理，这是一个线程，使用阻塞队列
+- 两个进程通过该队列通信
 
 ```
 dagScheduler.handleJobSubmitted
@@ -24,9 +27,13 @@ dagScheduler.handleJobSubmitted
             - resourceOfferSingleTaskSet
               - taskSetManager.resourceOffer
         - launchTasks
+        这个launchTasks就是发送把Task发送给executor，并不执行任务
 ```
 ### （3）executor中运行Task
-很多人应该都会有这么一个疑问，自己写入的函数，Spark框架在哪一部分调用的。
+
+* executor端才是执行Task的地方
+* 很多人应该都会有这么一个疑问，自己写入的函数，Spark框架在哪一部分调用的?
+
 ```
 CoarseGrainedExecutorBackend
 LaunchTask
@@ -35,8 +42,9 @@ LaunchTask
       - Task.run
   - driver ! StatusUpdate
 ```
-通过上面的调用可以看到，执行作业时使用的是Task中的run方法。Spark中的Task分成两类，一类是ResultTask，一类是ShuffleMapTask。
 
+* 通过上面的调用可以看到，执行作业时使用的是Task中的run方法
+* Spark中的Task分成两类，一类是ResultTask，一类是ShuffleMapTask。
 * ResultTask
 
 ```

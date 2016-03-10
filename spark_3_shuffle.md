@@ -34,4 +34,4 @@ map的输出部分，mapreduce是写入内存缓冲区，然后在排序之后�
 
 对于大规模数据排序而言，有良好的外部排序算法，可能处理大规模数据。而hash则难以利用硬盘等来处理大规模数据。spark在处理这个问题是使用的是ExternalAppendOnlyMap，具体做法是按照key的hash排序。对于partition而言，如果partition的数量不大，可以直接一个parition一个文件，如果文件数量过多，则可以借鉴mapreduce中的merge过程，保证相同key的value聚集在一起的前提下，不断的合并文件，就是在ExternalSorter中的实现。只不过这里是只对partition进行了排序，对于key按照hash排序。
 
-如果是不需要Aggregator操作则无法利用到hash的优势。目前tungsten-sort应该可以比较适合这种类型的操作，例如groupByKey等。目前而且根据论文*Clash of the titans: MapReduce vs. Spark for large scale data analytics*中的描述，mapreduce的shuffle和map是可以同时进行的，这个也是值的Spark中借鉴的。
+如果是不需要Aggregator操作则无法利用到hash的优势。目前tungsten-sort应该可以比较适合这种类型的操作，例如groupByKey等。目前而且根据论文*Clash of the titans: MapReduce vs. Spark for large scale data analytics*中的描述，mapreduce的shuffle和map是可以同时进行的，这个也是值得Spark中借鉴的。
